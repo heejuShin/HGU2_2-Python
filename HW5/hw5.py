@@ -1,6 +1,15 @@
 from tkinter import *
 from tkinter.filedialog import *     
 from tkinter.scrolledtext import *
+import sys
+
+
+##ㅇ남은거
+#1.파일 잘못읽었을 때 예외처리
+#2.잘못된 파일 불렀을 때 예외처리
+#3. 외 예외처리
+#4. scrolled text 크기 및 GUI ppt랑 확인
+#5. 기타 ppt랑 확
 
 def readfile(filepath, choice):
     try:
@@ -53,29 +62,102 @@ def encryption(filename, txt, pwcode):
 
     # 암호키 딕셔너리, 암호화 된 텍스트, 암호화된 암호키를 리턴
     return codeDict, codedText, encKeys
-   
+
+# 복호화 함수 - 파라메터는 파일이름, 암호화 된 파일본문, 비밀번호 합, 암호키(암호화된 상태)
+def decryption(filename, txt, pwcode, enkeys):
+    enkeys = enkeys.split() # 암호화된 암호키 텍스트를 공백을 이용해 리스트로 분리
+    codeDict = {} # 복호키 저장할 dictionary
+    decodedText = ''
+    try:
+        # 암호화된 암호키를 비밀번호합을 이용해 복호키로 복호화
+        for i in range(0, len(enkeys), 2):
+            codeDict[int(enkeys[i+1])-pwcode] = chr(int(enkeys[i])-pwcode)
+
+        # 암호화된 텍스트를 복호키를 이용해 복호화
+        for t in txt.split():
+            decodedText += codeDict[int(t)] 
+    except:
+        # 복호화 실패하면 False를 리턴
+        return False
+
+    # 복호화 된 텍스트 저장
+    filename = filename.split('.')[0] # 확장자를 제외하고 따로 저장
+    outf = open(filename+'.dec', 'w', encoding='utf-8')
+    outf.write(decodedText)
+    outf.close()
+    
+    # 복호키 딕셔너리, 복호화 된 텍스트 리턴
+    return codeDict, decodedText
+
 def sel():
    str1 = "[선택된 옵션 : " + str(option.get()) + "]"
    l2.config(text = str1)
-
+   
+def checkPW(pw):
+    pwcode = False
+    # 비밀번호 자리 수 확인
+    if len(pw) != 4: 
+        # 자리 수 안 맞으면 False 리턴
+        return False
+    # 비밀번호 합을 구하면서 중간에 공백이 있는지 여부도 같이 확인
+    else:
+        for p in pw:
+            pwcode += ord(p) # 유니코드로 바꿔서 합을 구함
+            if p.isspace(): 
+                # 하나라도 공백이 있으면 False 리턴
+                return False
+        # 비밀번호 형식이 잘 맞으면 4자리 합을 리턴
+        return pwcode
+    
 def openFile():
    name = askopenfilename()
    l4.config(text=name)
    fn = l4['text']
    read=readfile(fn, option.get())
+   #잘못읽었을 때 예외처리하고 종료하는 것
+   if not read[0]:
+      print('[err]')
+      sys.exit()
    s1.delete(1.0, END)
-   s1.insert(END, read[1])
+   s1.insert(END, read[1][0:3000])
+   if option.get()==2:
+       s2.delete(1.0, END)
+       s2.insert(END, read[2][0:3000])
 
 def Run():
-   if(option.get()==1):
-      print("option1")
-      pwcode=e1.get()
-      print(pwcode)
-      #encryption(filename, txt, pwcode)
-   elif(option.get()==2):
-      print("option2")
-   else:
-      print("여기에 에러 메세지 출력")
+    if option.get()==1:
+        pw=e1.get()
+        pwcode=checkPW(pw)
+        if not checkPW(pw):
+            print("오류메세지")
+            sys.exit()
+        fn = l4['text']
+        read=readfile(fn, option.get())
+        enc = encryption(fn, read[1], pwcode)
+        s2.delete(1.0, END)
+        s2.insert(END, enc[0])
+        s3.delete(1.0, END)
+        s3.insert(END, enc[1][0:3000])
+        s4.delete(1.0, END)
+        s4.insert(END, enc[2][0:3000])
+    elif(option.get()==2):
+        pw=e1.get()
+        pwcode=checkPW(pw)
+        if not checkPW(pw):
+            print("오류메세지")
+            sys.exit()
+        fn = l4['text']
+        read=readfile(fn, option.get())
+        dec = decryption(fn,read[1],pwcode,read[2])
+        
+        s3.delete(1.0, END)
+        s3.insert(END, dec[0])
+        s4.delete(1.0, END)
+        s4.insert(END, dec[1][0:3000])
+        
+        
+    else:
+        print("여기에 에러 메세지 출력")
             #####
    
 root = Tk()
