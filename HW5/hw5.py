@@ -159,7 +159,12 @@ def Run():
     else:
         print("여기에 에러 메세지 출력")
             #####
-   
+
+def clear():
+    s1.delete(1.0, END)
+    s2.delete(1.0, END)
+    s3.delete(1.0, END)
+    s4.delete(1.0, END)
 root = Tk()
 root.title("HW5_21800412 Encryption & Decrytion")
 root.geometry("700x790")
@@ -209,6 +214,10 @@ e1.place(x=200, y=80)
 b2=Button(root, text="Run", command=Run)
 b2.pack()
 b2.place(x=500, y=80)
+
+b3=Button(root, text="Clear All", command=clear)
+b3.pack()
+b3.place(x=550, y=80)
 
 #scrolledText
 s1 = ScrolledText(root, width=80, height=10)
