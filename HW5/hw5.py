@@ -1,12 +1,11 @@
 from tkinter import *
 from tkinter.filedialog import *     
 from tkinter.scrolledtext import *
+from tkinter import messagebox
 import sys
 
 
 ##ㅇ남은거
-#1.파일 잘못읽었을 때 예외처리
-#2.잘못된 파일 불렀을 때 예외처리
 #3. 외 예외처리
 #4. scrolled text 크기 및 GUI ppt랑 확인
 #5. 기타 ppt랑 확
@@ -110,29 +109,39 @@ def checkPW(pw):
         return pwcode
     
 def openFile():
-   name = askopenfilename()
-   l4.config(text=name)
-   fn = l4['text']
-   read=readfile(fn, option.get())
-   #잘못읽었을 때 예외처리하고 종료하는 것
-   if not read[0]:
-      print('[err]')
-      sys.exit()
-   s1.delete(1.0, END)
-   s1.insert(END, read[1][0:3000])
-   if option.get()==2:
-       s2.delete(1.0, END)
-       s2.insert(END, read[2][0:3000])
+    clear()
+    name = askopenfilename()
+    l4.config(text=name)
+    fn = l4['text']
+    try:
+        read=readfile(fn, option.get())
+    except:
+        messagebox.showerror(root,"파일을 읽어들이는데 실패했습니다.")
+        sys.exit()
+    if not read[0]:
+        messagebox.showerror(root,"파일을 읽어들이는데 실패했습니다")
+        sys.exit()
+    s1.delete(1.0, END)
+    s1.insert(END, read[1][0:3000])
+    if option.get()==2:
+        s2.delete(1.0, END)
+        s2.insert(END, read[2][0:3000])
 
 def Run():
+    if l4['text']=="":
+        messagebox.showerror(root,"파일을 선택해주세요")
     if option.get()==1:
         pw=e1.get()
         pwcode=checkPW(pw)
         if not checkPW(pw):
-            print("오류메세지")
+            messagebox.showerror(root,"비밀번호는 공백이 포함되지 않는 4자리여야합니다")
             sys.exit()
         fn = l4['text']
-        read=readfile(fn, option.get())
+        try:
+            read=readfile(fn, option.get())
+        except:
+            messagebox.showerror(root,"파일을 읽어들이는데 실패했습니다.")
+            sys.exit()
         enc = encryption(fn, read[1], pwcode)
         s2.delete(1.0, END)
         s2.insert(END, enc[0])
@@ -144,12 +153,21 @@ def Run():
         pw=e1.get()
         pwcode=checkPW(pw)
         if not checkPW(pw):
-            print("오류메세지")
+            messagebox.showerror(root,"비밀번호는 공백이 포함되지 않는 4자리여야합니다")
             sys.exit()
         fn = l4['text']
         read=readfile(fn, option.get())
         dec = decryption(fn,read[1],pwcode,read[2])
-        
+        if not dec:
+            messagebox.showerror(root,"복호화에 실패했습니다")
+            sys.exit()
+        if s2.get(1.0, END).isspace():
+            try:
+                read=readfile(fn, option.get())
+            except:
+                messagebox.showerror(root,"복호화에 실패했습니다.")
+                sys.exit()            
+            s2.insert(END, read[2][0:3000])
         s3.delete(1.0, END)
         s3.insert(END, dec[0])
         s4.delete(1.0, END)
@@ -157,8 +175,7 @@ def Run():
         
         
     else:
-        print("여기에 에러 메세지 출력")
-            #####
+        messagebox.showerror(root,"옵션을 선택해주세요")
 
 def clear():
     s1.delete(1.0, END)
@@ -169,9 +186,9 @@ root = Tk()
 root.title("HW5_21800412 Encryption & Decrytion")
 root.geometry("700x790")
 root.resizable(False,False)
-root.configure(background='#ffcccc')
-
 mycolor = '#ffcccc'
+root.configure(background=mycolor)
+
 #option select
 l1=Label(root,text="Choose 1 or 2", bg=mycolor)
 l1.pack()
@@ -195,7 +212,7 @@ l2.place(x=600,y=20)
 l3=Label(root, text="file name: ", bg=mycolor)
 l3.pack()
 l3.place(x=20, y=50)
-l4 = Label(root, bg=mycolor)
+l4 = Label(root, bg=mycolor, width=80, anchor=W)
 l4.pack()
 l4.place(x=90, y=50)
 b1=Button(root, text="Open file", command=openFile, bg=mycolor)
@@ -203,7 +220,7 @@ b1.pack()
 b1.place(x=500,y=50)
 
 #password
-l5=Label(root, text="password(4 characters): ", bg="#ffcccc")
+l5=Label(root, text="password(4 characters): ", bg=mycolor)
 l5.pack()
 l5.place(x=20, y=80)
 
@@ -238,9 +255,3 @@ s4.place(x=50,y=615)
 
 
 root.mainloop()
-
-'''
-#scrolledTect
-s1 = ScrolledText()
-s1.insert(END, "s1")
-'''
